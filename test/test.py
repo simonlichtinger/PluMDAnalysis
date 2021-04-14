@@ -1,15 +1,17 @@
 from filecmp import cmp
 import os
+import sys
 
 import pytest
 import MDAnalysis
 
+sys.path.append(os.path.abspath('../PluMDAnalysis'))
 import PluMDAnalysis
 from PluMDAnalysis import PluMDAnalysis
 from PluMDAnalysis.aux_classes import PLUMED_Distance, PLUMED_Group, PLUMED_Restraint
 
 # load test data just once
-u = MDAnalysis.Universe("test_files/equil.gro", "test_files/test.xtc")
+u = MDAnalysis.Universe("test/equil.gro", "test/test.xtc")
 
 def test_consistency_checks():
     # Check for correct handling of various consistency errors
@@ -60,7 +62,7 @@ def test_simple_steer_manual():
 
     pmda.add_restraint_manual([0, 1000], [[0,0],[1000,1000]], [[5,2],[3,0.5]])
     pmda.generate_PLUMED_input()
-    assert cmp("plumed.dat", "test_files/expected_simple_steer.dat")
+    assert cmp("plumed.dat", "test/expected_simple_steer.dat")
     os.remove("plumed.dat")
 
 def test_simple_steer_automatic():
@@ -80,7 +82,7 @@ def test_simple_steer_automatic():
     pmda.add_distance(helices[1][0], helices[3][0])
     pmda.add_restraint_from_trajectory([0, 1000], [[0,0],[1000,1000]], [(0,100), (4900,5000)])
     pmda.generate_PLUMED_input()
-    assert cmp("plumed.dat", "test_files/expected_simple_steer_automatic.dat")
+    assert cmp("plumed.dat", "test/expected_simple_steer_automatic.dat")
     os.remove("plumed.dat")
 
-test_simple_steer_automatic()
+#test_simple_steer_automatic()
