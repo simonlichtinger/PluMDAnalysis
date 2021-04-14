@@ -21,11 +21,12 @@ jobs:
       run: |
         python --version
         python -m pip install --upgrade pip setuptools wheel
+        python -m pip install .
         python -m pip install coverage codecov
         python -m pip install pytest
     - name: Run coverage
       run: |
-        coverage run -m pytest test.py
+        coverage run -m pytest test/test.py
     - name: Run codecov
       if: success()
       env:
