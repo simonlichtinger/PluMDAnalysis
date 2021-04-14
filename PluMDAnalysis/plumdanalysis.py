@@ -98,13 +98,22 @@ class PluMDAnalysis:
                 self.restraints.append(new_restraint)
 
         def add_restraint_from_trajectory(self, time_series:list, kappas:list, frames:list):
+                """Create a new restraint from automatically averaging all saved distances across the specified frames of the trajectory.
+
+                :param time_series:         List of time-series points at which the PLUMED moving restraint takes steps.
+                :type time_series:          List<int>
+                :param kappas:              List of lists to record all the kappa values required for the restraint. First dimension are time-steps, second dimension are the distances.
+                :type kappas:               List<List<int>>
+                :param frames:              List of 2-tuples, which holds the start- end points (in ps) to be used for averaging for each restraint step.
+                :type frames:               List<Tuple<int>>
+                """
                 new_restraint = PLUMED_Restraint(self.distances)
                 new_restraint.add_time_series(time_series, kappas)
                 new_restraint.determine_distance_values(self.universe,frames, trj_time_step=self.trj_time_step)
                 self.restraints.append(new_restraint)
 
         def generate_PLUMED_input(self, print_args = [25000,'*','COLVAR'], write_to_file = True, filename = "plumed.dat"):
-                """Compile the PLUMED input file out of everything added so far. Write to file if desired.
+                """Compile the PLUMED input file out of everything added so far. Write to file if desired. 
 
                 :param print_args:              Arguments for the PLUMED PRINT command, [STRIDE, ARG, FILE]. Defaults to [25000,'*','COLVAR']
                 :type print_args:               list, optional

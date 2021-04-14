@@ -131,7 +131,7 @@ class PLUMED_Restraint:
         :param universe:        Universe which holds the trajectory.
         :type universe:         MDAnalysis.Universe
         :param frames:          List of 2-tuples, which holds the start- end points (in ps) to be used for averaging for each restraint step.
-        :type frames:           list
+        :type frames:           List<Tuple<int>>
         :param trj_time_step:   Length of a frame of the trajectory in ps, defaults to 50.
         :type trj_time_step:    float, optional
         :raises RuntimeError:   Need to add timeseries before adding distance values.
