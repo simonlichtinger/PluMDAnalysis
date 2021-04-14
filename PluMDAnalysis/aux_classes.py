@@ -126,7 +126,7 @@ class PLUMED_Restraint:
         self.distance_series = distance_series
 
     def determine_distance_values(self, universe:MDAnalysis.Universe, frames: list, trj_time_step = 50):
-        """Automatically add a series of distance values to be used by the PLUMED moving restraint, determined by averages over frames of the given trajectory.
+        """Automatically add a series of distance values to be used by the PLUMED moving restraint, determined by averages over frames of the given trajectory. 
 
         :param universe:        Universe which holds the trajectory.
         :type universe:         MDAnalysis.Universe
