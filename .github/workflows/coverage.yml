@@ -31,4 +31,4 @@ jobs:
       env:
         CODECOV_TOKEN: "4e126a06-94fb-4a8c-aff4-3997f350e947"
       run: |
-        codecov# This is a basic workflow to help you get started with Actions
+        codecov
