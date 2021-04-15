@@ -1,3 +1,5 @@
+[![codecov](https://codecov.io/gh/simonlichtinger/PluMDAnalysis/branch/main/graph/badge.svg?token=OS2KKHONFI)](https://codecov.io/gh/simonlichtinger/PluMDAnalysis)
+
 # PluMDAnalysis
 
 This library automates the generation of PLUMED input files by providing an
