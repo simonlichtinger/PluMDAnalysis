@@ -1,74 +1,5 @@
-""" This holds the code for auxiliary classes, including PLUMED_group, Distance and Restraint. """
-
 import MDAnalysis
-from MDAnalysis.core.groups import AtomGroup
-
 import numpy as np
-
-class PLUMED_Group:
-    """ Class to hold an AtomGroup and transform it into a PLUMED input string. """
-    def __init__(self, atom_group: AtomGroup, label: str, group_type='CENTER'):
-        """Construcutor for the PLUMED_Group class, initialised with an AtomGroup.
-
-        :param atom_group:  AtomGroup to be held by this instance of PLUMED_Group.
-        :type atom_group:   AtomGroup
-        :param label:       Label for this instance of PLUMED_Group.
-        :type label:        str
-        :param group_type:  Type of PLUMED group, 'CENTER' or 'COM', defaults to 'CENTER'
-        :type group_type:   str, optional
-        :raises TypeError:  The provided atom_group parameter is not of type AtomGroup.
-        :raises valueError:  The provided atom_group parameter must be 'CENTER' or 'COM'.
-        """
-        if not isinstance(atom_group, AtomGroup):
-            raise TypeError("The provided atom_group parameter is not of type AtomGroup.")
-        self.atom_group = atom_group
-        self.label = label
-        if not group_type in ['CENTER', 'COM']:
-            raise ValueError("The provided atom_group parameter must be 'CENTER' or 'COM'.")
-        self.group_type = group_type
-
-    def get_plumed_str(self):
-        """Obtain the PLUMED representation of this PLUMED_Group as a string.
-
-        :return: The string representing this PLUMED_Group, ready to be placed in input script.
-        :rtype: str
-        """
-        output_str = self.label + ": " + self.group_type + " ATOMS=" + ','.join([str(atom.ix+1) for atom in self.atom_group])
-        return output_str
-
-
-class PLUMED_Distance:
-    """ Class to hold two AtomGroup objects, calculate geometric distances between them
-     and transform the distance into a PLUMED input string. """
-    def __init__(self, group_1: PLUMED_Group, group_2: PLUMED_Group, label: str):
-        """Constructor for the PLUMED_Distance class, initialised with two PLUMED_Group objects.
-
-        :param group_1:         First group of two defining the distance.
-        :type group_1:          PLUMED_Group
-        :param group_2:         Second group of two defining the distance.
-        :type group_2:          PLUMED_Group
-        :param label:           Label for this PLUMED_Distance.
-        :type label:            str
-        """
-        self.group_1, self.group_2 = group_1, group_2
-        self.label = label
-
-    def get_plumed_str(self):
-        """Obtain the PLUMED representation of this PLUMED_Distance as a string.
-
-        :return: The string representing this PLUMED_Distance, ready to be placed in input script.
-        :rtype: str
-        """
-        return self.label + ": DISTANCE ATOMS=" + self.group_1.label + "," + self.group_2.label
-
-    def get_distance(self):
-        """Obtain the geometric distance between the two groups, at the current frame, in nm.
-
-        :return:    Distance between the two groups, at the current frame, in nm.
-        :rtype:     float
-        """
-        return np.sqrt(np.sum((self.group_1.atom_group.center_of_geometry() - self.group_2.atom_group.center_of_geometry())**2)) / 10
-
 
 class PLUMED_Restraint:
     """ Class to define a PLUMED moving restraint, and output it as a list of strings. """
@@ -156,7 +87,7 @@ class PLUMED_Restraint:
             for i in range(0,endpoint-startpoint):
                 # Shift the trajectory to the appropriate time point and find distances
                 universe.trajectory[i+startpoint]
-                distance_values[i,:] = np.array([dist.get_distance() for dist in self.distances])
+                distance_values[i,:] = np.array([dist.get_value() for dist in self.distances])
             #Average those distances for this frame
             self.distance_series.append([np.mean(distance_values[:,i]) for i in range(len(self.distances))])
                 

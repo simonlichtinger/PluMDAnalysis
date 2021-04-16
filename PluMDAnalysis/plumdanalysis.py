@@ -4,7 +4,9 @@
 import MDAnalysis
 from MDAnalysis.core.groups import AtomGroup
 
-from .aux_classes import PLUMED_Group, PLUMED_Distance, PLUMED_Restraint
+from .containers import PLUMED_Group
+from .single_value_fields import PLUMED_Distance
+from .plumed_restraint import PLUMED_Restraint
 
 class PluMDAnalysis:
         """ Class to represent the PLUMED input file which is in production. Contains methods for adding elements and linking them,

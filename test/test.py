@@ -8,7 +8,9 @@ import MDAnalysis
 sys.path.append(os.path.abspath('../PluMDAnalysis'))
 import PluMDAnalysis
 from PluMDAnalysis import PluMDAnalysis
-from PluMDAnalysis.aux_classes import PLUMED_Distance, PLUMED_Group, PLUMED_Restraint
+from PluMDAnalysis.containers import PLUMED_Group
+from PluMDAnalysis.single_value_fields import PLUMED_Distance
+from PluMDAnalysis.plumed_restraint import PLUMED_Restraint
 
 # load test data just once
 u = MDAnalysis.Universe("test/equil.gro", "test/test.xtc")
