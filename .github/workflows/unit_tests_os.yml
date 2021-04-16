@@ -1,4 +1,7 @@
-name: Coverage
+# This workflow will install Python dependencies, run tests and lint with a variety of Python versions
+# For more information see: https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions
+
+name: Run unit tests with OS coverage
 
 on:
   push:
@@ -9,7 +12,10 @@ on:
 jobs:
   build:
 
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
 
     steps:
     - uses: actions/checkout@v2
@@ -23,14 +29,7 @@ jobs:
         python -m pip install --upgrade pip setuptools wheel
         python -m pip install -r requirements.txt
         python -m pip install .
-        python -m pip install coverage codecov
-        python -m pip install pytest
-    - name: Run coverage
+        pip install pytest
+    - name: Test with pytest
       run: |
-        coverage run -m pytest test/test.py
-    - name: Run codecov
-      if: success()
-      env:
-        CODECOV_TOKEN: "4e126a06-94fb-4a8c-aff4-3997f350e947"
-      run: |
-        codecov
+        pytest test/test.py
