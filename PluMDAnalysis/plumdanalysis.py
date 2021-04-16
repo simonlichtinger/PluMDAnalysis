@@ -25,7 +25,7 @@ class PluMDAnalysis:
                 if not isinstance(universe, MDAnalysis.Universe):
                         raise TypeError("Constructor argument should be of type MDAnalysis.Universe.")
                 self.plumed_groups = []
-                self.distances = []
+                self.single_value_fields = []
                 self.restraints = []
                 self.universe = universe
                 self.trj_time_step = trj_time_step
@@ -80,39 +80,45 @@ class PluMDAnalysis:
                 if not plumed_group_2:
                         plumed_group_2 = self.add_atom_group(atom_group_2)
 
-                distance = PLUMED_Distance(plumed_group_1, plumed_group_2, f"distance{len(self.distances) + 1}")
-                self.distances.append(distance)
+                distance = PLUMED_Distance(plumed_group_1, plumed_group_2, f"distance{len(list(filter(lambda x: isinstance(x, PLUMED_Distance), self.single_value_fields))) + 1}")
+                self.single_value_fields.append(distance)
                 return distance
 
-        def add_restraint_manual(self, time_series:list, kappas:list, distance_series:list):
-                """Creates a new restraint from manual entry of the target distances at each step.
+        def add_restraint_manual(self, time_series:list, kappas:list, series:list):
+                """Creates a new restraint from manual entry of the target single_value_fields at each step.
 
                 :param time_series:         List of time-series points at which the PLUMED moving restraint takes steps.
                 :type time_series:          List<int>
-                :param kappas:              List of lists to record all the kappa values required for the restraint. First dimension are time-steps, second dimension are the distances.
+                :param kappas:              List of lists to record all the kappa values required for the restraint. First dimension are time-steps, second dimension are the single_value_fields.
                 :type kappas:               List<List<int>>
-                :param distance_series:     List of lists to record all the target value for the restraint. First dimension are time-steps, second dimension are distance values.
-                :type distance_series:      List<List<float>>
+                :param series:     List of lists to record all the target value for the restraint. First dimension are time-steps, second dimension are distance values.
+                :type series:      List<List<float>>
+                :return:                    The created PLUMED_Restraint
+                :rtype:                     PLUMED_Restraint
                 """
-                new_restraint = PLUMED_Restraint(self.distances)
+                new_restraint = PLUMED_Restraint(self.single_value_fields)
                 new_restraint.add_time_series(time_series, kappas)
-                new_restraint.add_distance_values(distance_series)
+                new_restraint.add_values(series)
                 self.restraints.append(new_restraint)
+                return new_restraint
 
         def add_restraint_from_trajectory(self, time_series:list, kappas:list, frames:list):
-                """Create a new restraint from automatically averaging all saved distances across the specified frames of the trajectory.
+                """Create a new restraint from automatically averaging all saved single_value_fields across the specified frames of the trajectory.
 
                 :param time_series:         List of time-series points at which the PLUMED moving restraint takes steps.
                 :type time_series:          List<int>
-                :param kappas:              List of lists to record all the kappa values required for the restraint. First dimension are time-steps, second dimension are the distances.
+                :param kappas:              List of lists to record all the kappa values required for the restraint. First dimension are time-steps, second dimension are the single_value_fields.
                 :type kappas:               List<List<int>>
                 :param frames:              List of 2-tuples, which holds the start- end points (in ps) to be used for averaging for each restraint step.
                 :type frames:               List<Tuple<int>>
+                :return:                    The created PLUMED_Restraint
+                :rtype:                     PLUMED_Restraint
                 """
-                new_restraint = PLUMED_Restraint(self.distances)
+                new_restraint = PLUMED_Restraint(self.single_value_fields)
                 new_restraint.add_time_series(time_series, kappas)
-                new_restraint.determine_distance_values(self.universe,frames, trj_time_step=self.trj_time_step)
+                new_restraint.determine_values(self.universe,frames, trj_time_step=self.trj_time_step)
                 self.restraints.append(new_restraint)
+                return new_restraint
 
         def generate_PLUMED_input(self, print_args = [25000,'*','COLVAR'], write_to_file = True, filename = "plumed.dat"):
                 """Compile the PLUMED input file out of everything added so far. Write to file if desired. 
@@ -133,7 +139,7 @@ class PluMDAnalysis:
                         output.append(group.get_plumed_str())
                 output.append("")
 
-                for distance in self.distances:
+                for distance in self.single_value_fields:
                         output.append(distance.get_plumed_str())
                 output.append("")
 
