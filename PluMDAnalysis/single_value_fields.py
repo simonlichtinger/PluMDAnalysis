@@ -35,3 +35,37 @@ class PLUMED_Distance(SingleValueField):
         :rtype:     float
         """
         return np.sqrt(np.sum((self.group_1.atom_group.center_of_geometry() - self.group_2.atom_group.center_of_geometry())**2)) / 10
+
+
+
+class PLUMED_Combine(SingleValueField):
+    def __init__(self, arguments:list, coefficients:list, label:str):
+        """Constructure for the PLUMED_Combine class. Initialised with argument SingleValueFields and the coefficients.
+
+        :param arguments:       List of SingleValueFields to be used as arguments for the linear combination.
+        :type arguments:        List<SingleValueField>
+        :param coefficients:    List of coefficients for each 
+        :type coefficients:     List<float>
+        :param label:           Label for this PLUMED_Combine.
+        :type label:            str
+        """
+        super(PLUMED_Combine, self).__init__(label)
+        if not len(arguments) == len(coefficients):
+            raise ValueError("Arguments and Coefficients need to have the same length.")
+        self.arguments, self.coefficients = arguments, coefficients
+
+    def get_plumed_str(self):
+        """Obtain the PLUMED representation of this PLUMED_Combine as a string.
+
+        :return:    The string representing this PLUMED_Combine, ready to be placed in input script.
+        :rtype:     str
+        """
+        return f"{self.label}: COMBINE ARG={','.join([x.label for x in self.arguments])} COEFFICIENTS={','.join([str(x) for x in self.coefficients])} PERIODIC=NO"
+
+    def get_value(self):
+        """Obtain the instantaneous value of this linear combination for the current time frame.
+
+        :return:    Value of the linear combination.
+        :rtype:     float
+        """
+        return np.sum(np.array([arg.get_value() for arg in self.arguments]).dot(self.coefficients))

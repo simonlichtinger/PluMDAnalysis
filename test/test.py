@@ -44,6 +44,9 @@ def test_consistency_checks():
     with pytest.raises(ValueError): rest.add_values([[1,2],[2]])
     with pytest.raises(ValueError): rest.determine_values(u,[(0,100), (200,300), (4900,5000)])
     with pytest.raises(ValueError): rest.determine_values(u,[(0,100), 4900])
+    with pytest.raises(ValueError): pmda.add_linear_combination([1,2,3], fields_of_interest=[PLUMED_Distance(helices[0][0], helices[1][1], "test")])
+    pmda.add_distance(helices[0][0], helices[1][0])#
+    with pytest.raises(ValueError): pmda.add_linear_combination([1,2])
     rest.add_values([[1],[2]])
     
 def test_simple_steer_manual():
@@ -87,4 +90,48 @@ def test_simple_steer_automatic():
     assert cmp("plumed.dat", "test/expected_simple_steer_automatic.dat")
     os.remove("plumed.dat")
 
-#test_simple_steer_automatic()
+def test_steer_linear_combination():
+    helices = [
+        (u.select_atoms('resid 68:73 and name CA'),
+        u.select_atoms('resid 46:51 and name CA')),
+        (u.select_atoms('resid 79:84 and name CA'),
+        u.select_atoms('resid 98:103 and name CA')),
+        (u.select_atoms('resid 325:330 and name CA'),
+        u.select_atoms('resid 290:295 and name CA')),
+        (u.select_atoms('resid 341:346 and name CA'),
+        u.select_atoms('resid 364:369 and name CA'))
+    ]
+
+    pmda = PluMDAnalysis(u)
+    pmda.add_distance(helices[0][0], helices[2][0]) # corresponding to 1->7 and 2->8 tip distances
+    pmda.add_distance(helices[1][0], helices[3][0])
+
+    lin_comb = pmda.add_linear_combination([-0.5,0.2])
+    pmda.add_restraint_manual([0, 1000], [[0],[1000]], [[5],[3]], fields_of_interest=[lin_comb])
+    pmda.generate_PLUMED_input()
+    assert cmp("plumed.dat", "test/expected_lin_comb.dat")
+    os.remove("plumed.dat")
+
+def test_steer_linear_combination_automatic():
+    helices = [
+        (u.select_atoms('resid 68:73 and name CA'),
+        u.select_atoms('resid 46:51 and name CA')),
+        (u.select_atoms('resid 79:84 and name CA'),
+        u.select_atoms('resid 98:103 and name CA')),
+        (u.select_atoms('resid 325:330 and name CA'),
+        u.select_atoms('resid 290:295 and name CA')),
+        (u.select_atoms('resid 341:346 and name CA'),
+        u.select_atoms('resid 364:369 and name CA'))
+    ]
+
+    pmda = PluMDAnalysis(u)
+    pmda.add_distance(helices[0][0], helices[2][0]) # corresponding to 1->7 and 2->8 tip distances
+    pmda.add_distance(helices[1][0], helices[3][0])
+
+    lin_comb = pmda.add_linear_combination([-0.5,0.2])
+    pmda.add_restraint_from_trajectory([0, 1000], [[0],[1000]], [(0,100), (4900,5000)], fields_of_interest=[lin_comb])
+    pmda.generate_PLUMED_input()
+    assert cmp("plumed.dat", "test/expected_lin_comb_auto.dat")
+    os.remove("plumed.dat")
+
+#test_steer_linear_combination()

@@ -5,7 +5,7 @@ import MDAnalysis
 from MDAnalysis.core.groups import AtomGroup
 
 from .containers import PLUMED_Group
-from .single_value_fields import PLUMED_Distance
+from .single_value_fields import PLUMED_Distance, PLUMED_Combine
 from .plumed_restraint import PLUMED_Restraint
 
 class PluMDAnalysis:
@@ -84,25 +84,44 @@ class PluMDAnalysis:
                 self.single_value_fields.append(distance)
                 return distance
 
-        def add_restraint_manual(self, time_series:list, kappas:list, series:list):
+        def add_linear_combination(self, coefficients:list, fields_of_interest:list = ['all']):
+                if fields_of_interest[0] == 'all':
+                        new_combination = PLUMED_Combine(self.single_value_fields.copy(), coefficients, f"combine{len(list(filter(lambda x: isinstance(x, PLUMED_Combine), self.single_value_fields))) + 1}")
+                else:
+                        for field in fields_of_interest:
+                                if not field in self.single_value_fields:
+                                        raise ValueError("Provided fields_of_interest is not a subset of those already defined.")
+                        new_combination = PLUMED_Combine(fields_of_interest, coefficients,f"combine{len(list(filter(lambda x: isinstance(x, PLUMED_Combine), self.single_value_fields))) + 1}")
+                self.single_value_fields.append(new_combination)
+                return new_combination
+
+        def add_restraint_manual(self, time_series:list, kappas:list, series:list, fields_of_interest:list = ['all']):
                 """Creates a new restraint from manual entry of the target single_value_fields at each step.
 
                 :param time_series:         List of time-series points at which the PLUMED moving restraint takes steps.
                 :type time_series:          List<int>
                 :param kappas:              List of lists to record all the kappa values required for the restraint. First dimension are time-steps, second dimension are the single_value_fields.
                 :type kappas:               List<List<int>>
-                :param series:     List of lists to record all the target value for the restraint. First dimension are time-steps, second dimension are distance values.
-                :type series:      List<List<float>>
+                :param series:              List of lists to record all the target value for the restraint. First dimension are time-steps, second dimension are distance values.
+                :type series:               List<List<float>>
+                :param fields_of_interest:  List of all instances of SingleValueField to be considered for this restraint, subset of those already defined, ['all'] will use all which have been stored in the class, defaults to ['all']
+                :type fields_of_interest:   List<SingleValueField>, optional
                 :return:                    The created PLUMED_Restraint
                 :rtype:                     PLUMED_Restraint
                 """
-                new_restraint = PLUMED_Restraint(self.single_value_fields)
+                if fields_of_interest[0] == 'all':
+                        new_restraint = PLUMED_Restraint(self.single_value_fields)
+                else:
+                        for field in fields_of_interest:
+                                if not field in self.single_value_fields:
+                                        raise ValueError("Provided fields_of_interest is not a subset of those already defined.")
+                        new_restraint = PLUMED_Restraint(fields_of_interest)
                 new_restraint.add_time_series(time_series, kappas)
                 new_restraint.add_values(series)
                 self.restraints.append(new_restraint)
                 return new_restraint
 
-        def add_restraint_from_trajectory(self, time_series:list, kappas:list, frames:list):
+        def add_restraint_from_trajectory(self, time_series:list, kappas:list, frames:list, fields_of_interest:list = ['all']):
                 """Create a new restraint from automatically averaging all saved single_value_fields across the specified frames of the trajectory.
 
                 :param time_series:         List of time-series points at which the PLUMED moving restraint takes steps.
@@ -111,10 +130,18 @@ class PluMDAnalysis:
                 :type kappas:               List<List<int>>
                 :param frames:              List of 2-tuples, which holds the start- end points (in ps) to be used for averaging for each restraint step.
                 :type frames:               List<Tuple<int>>
+                :param fields_of_interest:  List of all instances of SingleValueField to be considered for this restraint, subset of those already defined, ['all'] will use all which have been stored in the class, defaults to ['all']
+                :type fields_of_interest:   List<SingleValueField>, optional
                 :return:                    The created PLUMED_Restraint
                 :rtype:                     PLUMED_Restraint
                 """
-                new_restraint = PLUMED_Restraint(self.single_value_fields)
+                if fields_of_interest[0] == 'all':
+                        new_restraint = PLUMED_Restraint(self.single_value_fields)
+                else:
+                        for field in fields_of_interest:
+                                if not field in self.single_value_fields:
+                                        raise ValueError("Provided fields_of_interest is not a subset of those already defined.")
+                        new_restraint = PLUMED_Restraint(fields_of_interest)
                 new_restraint.add_time_series(time_series, kappas)
                 new_restraint.determine_values(self.universe,frames, trj_time_step=self.trj_time_step)
                 self.restraints.append(new_restraint)

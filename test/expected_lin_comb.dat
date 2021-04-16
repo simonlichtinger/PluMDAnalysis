@@ -5,12 +5,13 @@ group4: CENTER ATOMS=4769,4775,4787,4804,4821,4838
 
 distance1: DISTANCE ATOMS=group1,group2
 distance2: DISTANCE ATOMS=group3,group4
+combine1: COMBINE ARG=distance1,distance2 COEFFICIENTS=-0.5,0.2 PERIODIC=NO
 
 restraint: ...
      MOVINGRESTRAINT
-     ARG=distance1,distance2
-     AT0=2.6063,2.0162   STEP0=0   KAPPA0=0,0
-     AT1=2.4133,2.008   STEP1=1000   KAPPA1=1000,1000
+     ARG=combine1
+     AT0=5   STEP0=0   KAPPA0=0
+     AT1=3   STEP1=1000   KAPPA1=1000
 ...
 
 PRINT STRIDE=25000 ARG=* FILE=COLVAR
